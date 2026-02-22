@@ -17,7 +17,7 @@ def tmux_available() -> bool:
 
 def session_to_tmux_name(session_id: str) -> str:
     normalized = re.sub(r"[^a-zA-Z0-9_-]+", "-", session_id.strip())
-    return f"memora-{normalized}"[:80]
+    return f"menemory-{normalized}"[:80]
 
 
 def tmux_has_session(tmux_name: str) -> bool:

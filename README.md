@@ -1,8 +1,8 @@
-# Memora
+# Menemory
 
 로컬 기본 + Supabase 백업용 상태형 AI 메모리 CLI입니다.
 
-- 기본 저장소: 현재 프로젝트의 `./.memora`
+- 기본 저장소: 현재 프로젝트의 `./.menemory`
 - 세션 복구: `tmux` 연동
 - 백업/복원: Supabase (`backup push/pull`)
 - 컨텍스트 계층: Core / Session / Long-term
@@ -19,28 +19,28 @@
 
 ```bash
 # 프로젝트 루트에서
-memora init --session-id dev-2026-02-20
-memora ask "현재 작업 이어서 정리해줘" --cmd "codex"
-memora status
+menemory init --session-id dev-2026-02-20
+menemory ask "현재 작업 이어서 정리해줘" --cmd "codex"
+menemory status
 ```
 
 `init`은 아래를 한 번에 수행합니다.
 - 로컬 세션 초기화
 - 사용자 설정 마법사(이름/이메일/LLM/Supabase)
 - 실행환경 점검(tmux/Supabase/gitignore)
-- Codex용 기본 memora 스킬 세트 자동 생성(`~/.codex/skills`)
+- Codex용 기본 menemory 스킬 세트 자동 생성(`~/.codex/skills`)
 
 ## 직관 명령어
 
 ```bash
-memora init --session-id <id>      # 첫 실행 권장(체크 + 스킬 부트스트랩)
-memora start --session-id <id>     # 세션 시작/초기화
-memora ask "..." --cmd "codex"     # 메모리 포함 질의 (추천)
-memora status                      # 로컬 상태 요약
-memora resume --attach             # SSH 재접속 후 tmux 복구
-memora backup push                 # 로컬 -> Supabase 백업
-memora backup pull --session-id <id> # Supabase -> 로컬 복원
-memora where                       # 현재 MEMORA_HOME 확인
+menemory init --session-id <id>      # 첫 실행 권장(체크 + 스킬 부트스트랩)
+menemory start --session-id <id>     # 세션 시작/초기화
+menemory ask "..." --cmd "codex"     # 메모리 포함 질의 (추천)
+menemory status                      # 로컬 상태 요약
+menemory resume --attach             # SSH 재접속 후 tmux 복구
+menemory backup push                 # 로컬 -> Supabase 백업
+menemory backup pull --session-id <id> # Supabase -> 로컬 복원
+menemory where                       # 현재 MENEMORY_HOME 확인
 ```
 
 기존 호환 명령(`run`, `show`, `supabase-*`)도 계속 동작합니다.
@@ -48,32 +48,32 @@ memora where                       # 현재 MEMORA_HOME 확인
 `init` 옵션:
 
 ```bash
-memora init --interactive                 # 설정 마법사 강제 실행
-memora init --configure                   # 기존 config 있어도 다시 입력
-memora init --no-with-skills            # 스킬 생성 스킵
-memora init --skills-dir /path/skills   # 생성 경로 지정
-memora init --overwrite-skills          # 기존 스킬 덮어쓰기
-memora init --user-name minuum --user-email me@example.com
-memora init --llm-cmd codex
-memora init --supabase-url https://<project>.supabase.co
-memora init --supabase-service-role-key <service_role_key>
+menemory init --interactive                 # 설정 마법사 강제 실행
+menemory init --configure                   # 기존 config 있어도 다시 입력
+menemory init --no-with-skills            # 스킬 생성 스킵
+menemory init --skills-dir /path/skills   # 생성 경로 지정
+menemory init --overwrite-skills          # 기존 스킬 덮어쓰기
+menemory init --user-name minuum --user-email me@example.com
+menemory init --llm-cmd codex
+menemory init --supabase-url https://<project>.supabase.co
+menemory init --supabase-service-role-key <service_role_key>
 ```
 
-설정은 로컬 워크스페이스의 `./.memora/config.json`에 저장되며, 이후 `ask`/`backup`에서 자동 재사용됩니다.
-환경변수(`MEMORA_LLM_CMD`, `SUPABASE_*`)가 있으면 설정값보다 우선 적용됩니다.
+설정은 로컬 워크스페이스의 `./.menemory/config.json`에 저장되며, 이후 `ask`/`backup`에서 자동 재사용됩니다.
+환경변수(`MENEMORY_LLM_CMD`, `SUPABASE_*`)가 있으면 설정값보다 우선 적용됩니다.
 
 ## 자동 .gitignore 반영
 
-Memora가 워크스페이스를 생성할 때, 현재 Git 저장소의 `.gitignore`에 아래 경로를 자동 추가합니다.
+Menemory가 워크스페이스를 생성할 때, 현재 Git 저장소의 `.gitignore`에 아래 경로를 자동 추가합니다.
 
 ```gitignore
-.memora/sessions/
-.memora/longterm/chroma_db/
-.memora/longterm/memory.jsonl
+.menemory/sessions/
+.menemory/longterm/chroma_db/
+.menemory/longterm/memory.jsonl
 ```
 
-- 비활성화: `export MEMORA_AUTO_GITIGNORE=0`
-- 커스텀 홈 사용 시: `MEMORA_HOME` 기준 상대 경로로 자동 반영
+- 비활성화: `export MENEMORY_AUTO_GITIGNORE=0`
+- 커스텀 홈 사용 시: `MENEMORY_HOME` 기준 상대 경로로 자동 반영
 
 ## Supabase 백업 설정
 
@@ -89,14 +89,14 @@ export SUPABASE_SERVER_ID="dev-server-01"
 3. 백업/복원
 
 ```bash
-memora backup push
-memora backup pull --session-id dev-2026-02-20 --server-id dev-server-01
+menemory backup push
+menemory backup pull --session-id dev-2026-02-20 --server-id dev-server-01
 ```
 
 ## 설치
 
 ```bash
-cd memora
+cd menemory
 python -m pip install .
 # 또는
 pipx install .
@@ -115,13 +115,13 @@ GitHub Actions 기반 배포가 포함되어 있습니다.
 2. 각 인덱스에서 Trusted Publisher 등록
 3. Trusted Publisher의 repository/workflow를 아래와 정확히 일치:
 - owner: `minuum`
-- repo: `memora`
+- repo: `menemory`
 - workflow: `publish-pypi.yml` (PyPI), `publish-testpypi.yml` (TestPyPI)
 
 릴리스 절차:
 
 ```bash
-cd memora
+cd menemory
 # 버전 갱신 (pyproject.toml)
 git add .
 git commit -m "chore: release v0.1.1"
@@ -132,16 +132,16 @@ git push origin main --tags
 설치 확인:
 
 ```bash
-pipx install memora
+pipx install menemory
 # 또는
-python -m pip install memora
-memora --help
+python -m pip install menemory
+menemory --help
 ```
 
 ## 저장소 분리/푸시
 
 ```bash
-cd memora
-git remote add origin <new-memora-remote-url>
+cd menemory
+git remote add origin <new-menemory-remote-url>
 git push -u origin main
 ```

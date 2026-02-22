@@ -1,4 +1,4 @@
-"""Bootstrap helpers for Memora init flows."""
+"""Bootstrap helpers for Menemory init flows."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from pathlib import Path
 
 
 def default_skills_root() -> Path:
-    explicit = os.environ.get("MEMORA_SKILLS_DIR")
+    explicit = os.environ.get("MENEMORY_SKILLS_DIR")
     if explicit and explicit.strip():
         return Path(explicit).expanduser().resolve()
 
@@ -39,15 +39,15 @@ def _skill_openai_yaml(name: str, short_description: str, default_prompt: str) -
 
 def _skill_catalog() -> dict[str, dict[str, object]]:
     return {
-        "memora-bootstrap": {
-            "description": "Install Memora globally, set PATH/alias, and verify command availability.",
+        "menemory-bootstrap": {
+            "description": "Install Menemory globally, set PATH/alias, and verify command availability.",
             "body": (
-                "# Memora Bootstrap\n\n"
+                "# Menemory Bootstrap\n\n"
                 "## Workflow\n\n"
-                "1. Verify local executable: `./memora/memora --help`\n"
+                "1. Verify local executable: `./menemory --help`\n"
                 "2. Install globally (`pip install --user .` or symlink)\n"
                 "3. Ensure PATH has `~/.local/bin`\n"
-                "4. Rehash and verify: `hash -r && memora --help`\n"
+                "4. Rehash and verify: `hash -r && menemory --help`\n"
             ),
             "scripts": {
                 "install_global.sh": (
@@ -57,18 +57,18 @@ def _skill_catalog() -> dict[str, dict[str, object]]:
                     "cd \"$ROOT_DIR\"\n"
                     "python3 -m pip install --user --no-build-isolation .\n"
                     "echo 'export PATH=\"$HOME/.local/bin:$PATH\"'\n"
-                    "echo 'Run: source ~/.bashrc && hash -r && memora --help'\n"
+                    "echo 'Run: source ~/.bashrc && hash -r && menemory --help'\n"
                 )
             },
-            "prompt": "Help me install memora globally and verify command availability.",
+            "prompt": "Help me install menemory globally and verify command availability.",
         },
-        "memora-ops-check": {
+        "menemory-ops-check": {
             "description": "Run local health checks, gitignore hygiene checks, and backup readiness checks.",
             "body": (
-                "# Memora Ops Check\n\n"
+                "# Menemory Ops Check\n\n"
                 "## Workflow\n\n"
-                "1. `memora where`\n"
-                "2. `memora status`\n"
+                "1. `menemory where`\n"
+                "2. `menemory status`\n"
                 "3. Verify runtime ignore rules in `.gitignore`\n"
                 "4. Verify Supabase env readiness\n"
             ),
@@ -76,8 +76,8 @@ def _skill_catalog() -> dict[str, dict[str, object]]:
                 "ops_check.sh": (
                     "#!/usr/bin/env bash\n"
                     "set -euo pipefail\n"
-                    "memora where\n"
-                    "memora status\n"
+                    "menemory where\n"
+                    "menemory status\n"
                     "if [ -n \"${SUPABASE_URL:-}\" ] && [ -n \"${SUPABASE_SERVICE_ROLE_KEY:-}\" ]; then\n"
                     "  echo \"OK: Supabase env configured\"\n"
                     "else\n"
@@ -85,98 +85,98 @@ def _skill_catalog() -> dict[str, dict[str, object]]:
                     "fi\n"
                 )
             },
-            "prompt": "Run memora operational checks and summarize pass/fail results.",
+            "prompt": "Run menemory operational checks and summarize pass/fail results.",
         },
-        "memora-session-capture": {
-            "description": "Save current conversation into local Memora and optionally back up to Supabase.",
+        "menemory-session-capture": {
+            "description": "Save current conversation into local Menemory and optionally back up to Supabase.",
             "body": (
-                "# Memora Session Capture\n\n"
+                "# Menemory Session Capture\n\n"
                 "## Workflow\n\n"
-                "1. `memora start --session-id <id>`\n"
-                "2. Add compact user/assistant summaries with `memora add`\n"
-                "3. Confirm with `memora status`\n"
-                "4. Optional backup: `memora backup push`\n"
+                "1. `menemory start --session-id <id>`\n"
+                "2. Add compact user/assistant summaries with `menemory add`\n"
+                "3. Confirm with `menemory status`\n"
+                "4. Optional backup: `menemory backup push`\n"
             ),
             "scripts": {
-                "capture_to_memora.sh": (
+                "capture_to_menemory.sh": (
                     "#!/usr/bin/env bash\n"
                     "set -euo pipefail\n"
                     "SESSION_ID=\"${1:-dev-$(date +%F)}\"\n"
                     "USER_SUMMARY=\"${2:-사용자 요청 요약}\"\n"
                     "ASSIST_SUMMARY=\"${3:-수행 결과 요약}\"\n"
-                    "memora start --session-id \"$SESSION_ID\"\n"
-                    "memora add --role user --content \"$USER_SUMMARY\"\n"
-                    "memora add --role assistant --content \"$ASSIST_SUMMARY\"\n"
-                    "memora status\n"
+                    "menemory start --session-id \"$SESSION_ID\"\n"
+                    "menemory add --role user --content \"$USER_SUMMARY\"\n"
+                    "menemory add --role assistant --content \"$ASSIST_SUMMARY\"\n"
+                    "menemory status\n"
                 )
             },
-            "prompt": "Capture this chat into memora session and show final status.",
+            "prompt": "Capture this chat into menemory session and show final status.",
         },
-        "memora-session-recovery": {
-            "description": "Recover Memora context after SSH disconnects, crashes, or migration.",
+        "menemory-session-recovery": {
+            "description": "Recover Menemory context after SSH disconnects, crashes, or migration.",
             "body": (
-                "# Memora Session Recovery\n\n"
+                "# Menemory Session Recovery\n\n"
                 "## Workflow\n\n"
-                "1. `memora where` and `memora status`\n"
-                "2. `memora resume` (or `--attach`)\n"
-                "3. Verify with `memora show`\n"
-                "4. Optional cloud restore: `memora backup pull --session-id <id>`\n"
+                "1. `menemory where` and `menemory status`\n"
+                "2. `menemory resume` (or `--attach`)\n"
+                "3. Verify with `menemory show`\n"
+                "4. Optional cloud restore: `menemory backup pull --session-id <id>`\n"
             ),
             "scripts": {
                 "recover_now.sh": (
                     "#!/usr/bin/env bash\n"
                     "set -euo pipefail\n"
-                    "memora where\n"
-                    "memora status\n"
-                    "memora resume\n"
-                    "memora show\n"
+                    "menemory where\n"
+                    "menemory status\n"
+                    "menemory resume\n"
+                    "menemory show\n"
                 )
             },
-            "prompt": "Recover memora session context after a disconnect.",
+            "prompt": "Recover menemory session context after a disconnect.",
         },
-        "memora-supabase-backup": {
-            "description": "Back up or restore Memora data with Supabase while keeping local as source of truth.",
+        "menemory-supabase-backup": {
+            "description": "Back up or restore Menemory data with Supabase while keeping local as source of truth.",
             "body": (
-                "# Memora Supabase Backup\n\n"
+                "# Menemory Supabase Backup\n\n"
                 "## Workflow\n\n"
-                "1. Confirm local state: `memora status`\n"
+                "1. Confirm local state: `menemory status`\n"
                 "2. Check env keys: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`\n"
-                "3. Backup: `memora backup push`\n"
-                "4. Restore: `memora backup pull --session-id <id>`\n"
+                "3. Backup: `menemory backup push`\n"
+                "4. Restore: `menemory backup pull --session-id <id>`\n"
             ),
             "scripts": {
                 "backup_cycle.sh": (
                     "#!/usr/bin/env bash\n"
                     "set -euo pipefail\n"
-                    "memora status\n"
-                    "memora backup push\n"
+                    "menemory status\n"
+                    "menemory backup push\n"
                     "echo \"Backup done\"\n"
                 )
             },
-            "prompt": "Run a memora backup/restore readiness check for Supabase.",
+            "prompt": "Run a menemory backup/restore readiness check for Supabase.",
         },
-        "memora-start-guide": {
-            "description": "Guide first-time command order for memora from start through status checks.",
+        "menemory-start-guide": {
+            "description": "Guide first-time command order for menemory from start through status checks.",
             "body": (
-                "# Memora Start Guide\n\n"
+                "# Menemory Start Guide\n\n"
                 "## Recommended Order\n\n"
-                "1. `memora --help`\n"
-                "2. `memora start --session-id dev-YYYY-MM-DD`\n"
-                "3. `memora ask \"...\" --cmd \"codex\"`\n"
-                "4. `memora status`\n"
-                "5. `memora where`\n"
+                "1. `menemory --help`\n"
+                "2. `menemory start --session-id dev-YYYY-MM-DD`\n"
+                "3. `menemory ask \"...\" --cmd \"codex\"`\n"
+                "4. `menemory status`\n"
+                "5. `menemory where`\n"
             ),
             "scripts": {
                 "start_guide.sh": (
                     "#!/usr/bin/env bash\n"
                     "set -euo pipefail\n"
                     "SESSION_ID=\"${1:-dev-$(date +%F)}\"\n"
-                    "memora start --session-id \"$SESSION_ID\"\n"
-                    "memora status\n"
-                    "memora where\n"
+                    "menemory start --session-id \"$SESSION_ID\"\n"
+                    "menemory status\n"
+                    "menemory where\n"
                 )
             },
-            "prompt": "Teach me the first-run memora command order.",
+            "prompt": "Teach me the first-run menemory command order.",
         },
     }
 
@@ -195,7 +195,7 @@ def ensure_default_skills(skills_root: Path, overwrite: bool = False) -> dict[st
             description = str(spec["description"])
             body = str(spec["body"])
             scripts = dict(spec.get("scripts", {}))
-            prompt = str(spec.get("prompt", "Guide me through this memora workflow."))
+            prompt = str(spec.get("prompt", "Guide me through this menemory workflow."))
 
             skill_dir = skills_root / name
             scripts_dir = skill_dir / "scripts"
@@ -217,7 +217,7 @@ def ensure_default_skills(skills_root: Path, overwrite: bool = False) -> dict[st
                 ),
                 refs_dir / "quickstart.md": (
                     f"# {name}\n\n"
-                    "This skill was generated by `memora init`.\n"
+                    "This skill was generated by `menemory init`.\n"
                     "Edit this file with team-specific examples.\n"
                 ),
             }

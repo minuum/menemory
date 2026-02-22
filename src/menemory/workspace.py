@@ -1,4 +1,4 @@
-"""Workspace path helpers for Memora."""
+"""Workspace path helpers for Menemory."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from pathlib import Path
 
 DEFAULT_CORE_MEMORY = """# Master Core Memory
 
-이 파일은 Memora 프롬프트에 항상 포함되는 핵심 메모리입니다.
+이 파일은 Menemory 프롬프트에 항상 포함되는 핵심 메모리입니다.
 
 - 프로젝트의 장기 목표
 - 개발 철학
@@ -15,14 +15,14 @@ DEFAULT_CORE_MEMORY = """# Master Core Memory
 - 일관되게 유지할 아키텍처 원칙
 """
 
-_GITIGNORE_MARKER = "# Memora runtime state (auto-managed)"
+_GITIGNORE_MARKER = "# Menemory runtime state (auto-managed)"
 
 
 def workspace_root() -> Path:
-    env_home = os.environ.get("MEMORA_HOME")
+    env_home = os.environ.get("MENEMORY_HOME")
     if env_home and env_home.strip():
         return Path(env_home).expanduser().resolve()
-    return (Path.cwd() / ".memora").resolve()
+    return (Path.cwd() / ".menemory").resolve()
 
 
 def core_memory_path() -> Path:
@@ -61,9 +61,9 @@ def _find_git_root(start: Path) -> Path | None:
     return None
 
 
-def _gitignore_rules_for(memora_home: Path, git_root: Path) -> list[str]:
+def _gitignore_rules_for(menemory_home: Path, git_root: Path) -> list[str]:
     try:
-        rel = memora_home.resolve().relative_to(git_root.resolve())
+        rel = menemory_home.resolve().relative_to(git_root.resolve())
     except ValueError:
         return []
 
@@ -79,7 +79,7 @@ def _gitignore_rules_for(memora_home: Path, git_root: Path) -> list[str]:
 
 
 def ensure_gitignore_rules() -> bool:
-    if os.environ.get("MEMORA_AUTO_GITIGNORE", "1").strip().lower() in {"0", "false", "off", "no"}:
+    if os.environ.get("MENEMORY_AUTO_GITIGNORE", "1").strip().lower() in {"0", "false", "off", "no"}:
         return False
 
     git_root = _find_git_root(Path.cwd())

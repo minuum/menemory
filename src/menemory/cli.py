@@ -1,4 +1,4 @@
-"""Memora CLI."""
+"""Menemory CLI."""
 
 from __future__ import annotations
 
@@ -67,7 +67,7 @@ def _resolve_init_settings(args: argparse.Namespace) -> tuple[dict[str, str], bo
 
     profile_name = args.user_name or str(existing.get("profile_name", "")).strip() or suggested_user_name()
     profile_email = args.user_email or str(existing.get("profile_email", "")).strip() or suggested_user_email()
-    llm_cmd = args.llm_cmd or str(existing.get("llm_cmd", "")).strip() or os.environ.get("MEMORA_LLM_CMD", "codex")
+    llm_cmd = args.llm_cmd or str(existing.get("llm_cmd", "")).strip() or os.environ.get("MENEMORY_LLM_CMD", "codex")
     supabase_url = args.supabase_url or str(existing.get("supabase_url", "")).strip() or os.environ.get("SUPABASE_URL", "")
     supabase_key = (
         args.supabase_service_role_key
@@ -82,7 +82,7 @@ def _resolve_init_settings(args: argparse.Namespace) -> tuple[dict[str, str], bo
     )
 
     if interactive:
-        print("Memora init setup wizard (Enter to keep default)")
+        print("Menemory init setup wizard (Enter to keep default)")
         profile_name = _prompt_value("User name", default=profile_name)
         profile_email = _prompt_value("User email", default=profile_email)
         llm_cmd = _prompt_value("LLM command", default=llm_cmd)
@@ -123,7 +123,7 @@ def cmd_init(args: argparse.Namespace) -> int:
     missing_supabase = [
         key for key in ("SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY") if not resolve_setting(key, key.lower(), "")
     ]
-    llm_cmd = settings_payload.get("llm_cmd") or resolve_setting("MEMORA_LLM_CMD", "llm_cmd", "codex") or "codex"
+    llm_cmd = settings_payload.get("llm_cmd") or resolve_setting("MENEMORY_LLM_CMD", "llm_cmd", "codex") or "codex"
 
     payload = {
         "ok": True,
@@ -140,7 +140,7 @@ def cmd_init(args: argparse.Namespace) -> int:
             "supabase_service_role_key_masked": mask_secret(settings_payload.get("supabase_service_role_key", "")),
         },
         "checks": {
-            "memora_command": bool(shutil.which("memora")),
+            "menemory_command": bool(shutil.which("menemory")),
             "tmux_available": tmux_available(),
             "supabase_env_ready": not missing_supabase,
             "missing_supabase_env": missing_supabase,
@@ -150,10 +150,10 @@ def cmd_init(args: argparse.Namespace) -> int:
         if skills_report is not None
         else {"ok": True, "skipped": True, "reason": "--no-with-skills option used"},
         "next_commands": [
-            f'memora ask "현재 작업 컨텍스트 정리해줘" --cmd "{llm_cmd}"',
-            "memora status",
-            "memora where",
-            "memora backup push",
+            f'menemory ask "현재 작업 컨텍스트 정리해줘" --cmd "{llm_cmd}"',
+            "menemory status",
+            "menemory where",
+            "menemory backup push",
         ],
     }
 
@@ -199,7 +199,7 @@ def cmd_run(args: argparse.Namespace) -> int:
 
 def cmd_ask(args: argparse.Namespace) -> int:
     user_input = args.user_input
-    cmd = args.cmd or resolve_setting("MEMORA_LLM_CMD", "llm_cmd", "cat") or "cat"
+    cmd = args.cmd or resolve_setting("MENEMORY_LLM_CMD", "llm_cmd", "cat") or "cat"
 
     add_message(role="user", content=user_input)
     prompt = build_prompt(user_input=user_input)
@@ -362,7 +362,7 @@ def cmd_where(args: argparse.Namespace) -> int:
 
 
 def make_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Memora: stateful AI workspace memory CLI")
+    parser = argparse.ArgumentParser(description="Menemory: stateful AI workspace memory CLI")
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_init = sub.add_parser("init", help="first-run setup: initialize session, run checks, and bootstrap skills")
@@ -372,9 +372,13 @@ def make_parser() -> argparse.ArgumentParser:
         "--with-skills",
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="generate default memora skills set (default: on)",
+        help="generate default menemory skills set (default: on)",
     )
-    p_init.add_argument("--skills-dir", default=None, help="target skills directory (default: $MEMORA_SKILLS_DIR or ~/.codex/skills)")
+    p_init.add_argument(
+        "--skills-dir",
+        default=None,
+        help="target skills directory (default: $MENEMORY_SKILLS_DIR or ~/.codex/skills)",
+    )
     p_init.add_argument("--overwrite-skills", action="store_true", help="overwrite existing generated skills")
     p_init.add_argument(
         "--interactive",
@@ -417,7 +421,7 @@ def make_parser() -> argparse.ArgumentParser:
 
     p_ask = sub.add_parser("ask", help="ask with memory context (recommended)")
     p_ask.add_argument("user_input")
-    p_ask.add_argument("--cmd", default=None, help="LLM command (default: MEMORA_LLM_CMD or cat)")
+    p_ask.add_argument("--cmd", default=None, help="LLM command (default: MENEMORY_LLM_CMD or cat)")
     p_ask.add_argument("--dry-run", action="store_true")
     p_ask.set_defaults(func=cmd_ask)
 
@@ -469,7 +473,7 @@ def make_parser() -> argparse.ArgumentParser:
     p_backup_pull.add_argument("--server-id", default=None)
     p_backup_pull.set_defaults(func=cmd_backup_pull)
 
-    p_where = sub.add_parser("where", help="print active MEMORA_HOME path")
+    p_where = sub.add_parser("where", help="print active MENEMORY_HOME path")
     p_where.set_defaults(func=cmd_where)
 
     return parser

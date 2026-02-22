@@ -1,4 +1,4 @@
-"""Local settings helpers for Memora."""
+"""Local settings helpers for Menemory."""
 
 from __future__ import annotations
 

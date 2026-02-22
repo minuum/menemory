@@ -1,4 +1,4 @@
-"""Session persistence and crash-safe rotation for Memora."""
+"""Session persistence and crash-safe rotation for Menemory."""
 
 from __future__ import annotations
 
