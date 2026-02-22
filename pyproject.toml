@@ -3,12 +3,12 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "memora"
-version = "0.1.2"
+name = "menemory"
+version = "0.1.3"
 description = "Stateful AI workspace memory CLI"
 readme = "README.md"
 requires-python = ">=3.9"
-authors = [{ name = "Memora Contributors" }]
+authors = [{ name = "Menemory Contributors" }]
 license = { text = "MIT" }
 keywords = ["ai", "memory", "cli", "session", "supabase", "tmux"]
 classifiers = [
@@ -19,12 +19,12 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/minuum/memora"
-Repository = "https://github.com/minuum/memora"
-Issues = "https://github.com/minuum/memora/issues"
+Homepage = "https://github.com/minuum/menemory"
+Repository = "https://github.com/minuum/menemory"
+Issues = "https://github.com/minuum/menemory/issues"
 
 [project.scripts]
-memora = "memora.cli:main"
+menemory = "menemory.cli:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
