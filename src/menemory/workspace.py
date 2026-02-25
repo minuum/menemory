@@ -37,6 +37,16 @@ def archive_dir() -> Path:
     return sessions_dir() / "archive"
 
 
+def history_dir() -> Path:
+    return sessions_dir() / "history"
+
+
+def session_history_path(session_id: str) -> Path:
+    normalized = "".join(ch if ch.isalnum() or ch in {"-", "_", "."} else "_" for ch in session_id.strip())
+    normalized = normalized or "default"
+    return history_dir() / f"{normalized}.jsonl"
+
+
 def active_session_path() -> Path:
     return sessions_dir() / "active_session.json"
 
@@ -112,6 +122,7 @@ def ensure_gitignore_rules() -> bool:
 def ensure_workspace_layout() -> None:
     (workspace_root() / "core").mkdir(parents=True, exist_ok=True)
     archive_dir().mkdir(parents=True, exist_ok=True)
+    history_dir().mkdir(parents=True, exist_ok=True)
     chroma_db_dir().mkdir(parents=True, exist_ok=True)
 
     core_path = core_memory_path()

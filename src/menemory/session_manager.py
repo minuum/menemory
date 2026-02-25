@@ -7,7 +7,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from .workspace import active_session_path, archive_dir, backup_session_path, ensure_workspace_layout
+from .workspace import (
+    active_session_path,
+    archive_dir,
+    backup_session_path,
+    ensure_workspace_layout,
+    session_history_path,
+)
 
 MAX_CONVERSATION_TURNS = 20
 KEEP_RECENT_TURNS = 10
@@ -21,6 +27,13 @@ def _atomic_write_json(path: Path, payload: dict[str, Any]) -> None:
     tmp_path = path.with_suffix(path.suffix + ".tmp")
     tmp_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     tmp_path.replace(path)
+
+
+def _append_jsonl(path: Path, payload: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(payload, ensure_ascii=False))
+        handle.write("\n")
 
 
 def _default_session(session_id: str | None = None) -> dict[str, Any]:
@@ -68,6 +81,59 @@ def save_session(session: dict[str, Any]) -> None:
     _atomic_write_json(active_path, session)
 
 
+def append_history_turn(session_id: str, role: str, content: str) -> None:
+    ensure_workspace_layout()
+    entry = {
+        "timestamp": utc_now_iso(),
+        "session_id": session_id,
+        "role": role,
+        "content": content,
+    }
+    _append_jsonl(session_history_path(session_id), entry)
+
+
+def _resolve_session_id(session_id: str | None = None) -> str:
+    if session_id and session_id.strip():
+        return session_id.strip()
+
+    session = load_session()
+    resolved = str(session.get("session_id", "")).strip()
+    if resolved:
+        return resolved
+    return datetime.now(timezone.utc).strftime("%Y-%m-%d-default")
+
+
+def read_history(session_id: str | None = None, limit: int | None = None) -> list[dict[str, Any]]:
+    resolved = _resolve_session_id(session_id=session_id)
+    path = session_history_path(resolved)
+    if not path.exists():
+        return []
+
+    rows: list[dict[str, Any]] = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            rows.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+
+    if limit is not None and limit >= 0:
+        return rows[-limit:]
+    return rows
+
+
+def history_turn_count(session_id: str | None = None) -> int:
+    resolved = _resolve_session_id(session_id=session_id)
+    path = session_history_path(resolved)
+    if not path.exists():
+        return 0
+
+    with path.open("r", encoding="utf-8") as handle:
+        return sum(1 for line in handle if line.strip())
+
+
 def _compress_messages(messages: list[dict[str, str]], max_chars_per_item: int = 220) -> str:
     lines: list[str] = []
     for item in messages:
@@ -110,10 +176,12 @@ def add_message(role: str, content: str) -> dict[str, Any]:
     session = load_session()
     session.setdefault("conversation", [])
     session.setdefault("summary", "")
+    session.setdefault("session_id", datetime.now(timezone.utc).strftime("%Y-%m-%d-default"))
 
     session["conversation"].append({"role": role, "content": content})
     session = summarize_and_prune(session)
     save_session(session)
+    append_history_turn(session_id=str(session["session_id"]), role=role, content=content)
     return session
 
 

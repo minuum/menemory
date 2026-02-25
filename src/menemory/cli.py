@@ -13,7 +13,7 @@ from pathlib import Path
 
 from .bootstrap import default_skills_root, ensure_default_skills
 from .memory_manager import build_memory_block
-from .session_manager import add_message, init_session, load_session
+from .session_manager import add_message, history_turn_count, init_session, load_session, read_history
 from .settings import (
     load_settings,
     mask_secret,
@@ -307,12 +307,14 @@ def cmd_supabase_pull_longterm(args: argparse.Namespace) -> int:
 def cmd_status(args: argparse.Namespace) -> int:
     del args
     session = load_session()
+    session_id = session.get("session_id")
     payload = {
         "workspace": str(workspace_root()),
-        "session_id": session.get("session_id"),
+        "session_id": session_id,
         "last_updated": session.get("last_updated"),
         "conversation_turns": len(session.get("conversation", [])),
         "summary_chars": len(session.get("summary", "")),
+        "raw_history_turns": history_turn_count(session_id=str(session_id)) if session_id else 0,
     }
     print(json.dumps(payload, ensure_ascii=False, indent=2))
     return 0
@@ -358,6 +360,22 @@ def cmd_backup_pull(args: argparse.Namespace) -> int:
 def cmd_where(args: argparse.Namespace) -> int:
     del args
     print(str(workspace_root()))
+    return 0
+
+
+def cmd_history(args: argparse.Namespace) -> int:
+    session_id = args.session_id or str(load_session().get("session_id", "")).strip()
+    if not session_id:
+        print(json.dumps({"session_id": "", "count": 0, "history": []}, ensure_ascii=False, indent=2))
+        return 0
+
+    rows = read_history(session_id=session_id, limit=args.limit)
+    payload = {
+        "session_id": session_id,
+        "count": len(rows),
+        "history": rows,
+    }
+    print(json.dumps(payload, ensure_ascii=False, indent=2))
     return 0
 
 
@@ -427,6 +445,11 @@ def make_parser() -> argparse.ArgumentParser:
 
     p_status = sub.add_parser("status", help="show concise local workspace status")
     p_status.set_defaults(func=cmd_status)
+
+    p_history = sub.add_parser("history", help="show raw turn history for a session")
+    p_history.add_argument("--session-id", default=None)
+    p_history.add_argument("--limit", type=int, default=20, help="number of most recent history rows (default: 20)")
+    p_history.set_defaults(func=cmd_history)
 
     p_tmux_start = sub.add_parser("tmux-start", help="start detached tmux session for active session_id")
     p_tmux_start.add_argument("--command", default=None, help="optional bootstrap command in tmux")
