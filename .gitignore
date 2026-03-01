@@ -228,3 +228,8 @@ dist/
 .memora/sessions/
 .memora/longterm/chroma_db/
 .memora/longterm/memory.jsonl
+
+# Menemory runtime state (auto-managed)
+.menemory/sessions/
+.menemory/longterm/chroma_db/
+.menemory/longterm/memory.jsonl
