@@ -39,6 +39,7 @@ menemory start --session-id <id>     # 세션 시작/초기화
 menemory ask "..." --cmd "codex"     # 메모리 포함 질의 (추천)
 menemory status                      # 로컬 상태 요약
 menemory history --limit 50          # 세션 raw turn 원문 확인
+menemory recover                     # 최근 대화/히스토리 기반 빠른 복구 뷰
 menemory resume --attach             # SSH 재접속 후 tmux 복구
 menemory backup push                 # 로컬 -> Supabase 백업
 menemory backup pull --session-id <id> # Supabase -> 로컬 복원
@@ -84,6 +85,46 @@ Menemory가 워크스페이스를 생성할 때, 현재 Git 저장소의 `.gitig
   - 경로: `.menemory/sessions/history/<session_id>.jsonl`
   - 조회: `menemory history --limit 100`
 - `menemory status`에서 `raw_history_turns`로 원문 누적 개수를 빠르게 확인할 수 있습니다.
+
+## 빠른 복구
+
+SSH가 끊기거나 세션이 날아간 뒤 바로 최근 상태를 훑고 싶으면 아래 중 하나를 사용합니다.
+
+```bash
+menemory recover
+menemory recover --build-prompt
+menemory recover --resume
+./scripts/menemory_recover_now.sh
+```
+
+- `recover`: 최근 conversation + raw history tail을 한 번에 보여줍니다.
+- `--build-prompt`: "작업 재개 요약" 기준의 메모리 프롬프트를 함께 출력합니다.
+- `--resume`: 현재 세션 id 기준 tmux 세션이 없으면 다시 만들고 복구 뷰를 출력합니다.
+
+원하면 셸에 아래 alias를 추가해 `메네모리` 한 단어로 실행할 수 있습니다.
+
+```bash
+alias 메네모리='cd /path/to/repo && ./scripts/menemory_recover_now.sh'
+```
+
+이 alias는 자동 설치되지 않으므로, 실제 적용하려면 `~/.bashrc` 또는 `~/.zshrc`에 추가해야 합니다.
+
+## 주기 자동보존
+
+현재 Menemory에 저장된 상태를 몇 분마다 스냅샷하려면 아래 스크립트를 사용합니다.
+
+```bash
+./scripts/menemory_autosave.sh 300
+```
+
+- 기본은 300초(5분)입니다.
+- 스냅샷은 `.menemory/sessions/autosave/` 아래에 저장됩니다.
+- `MENEMORY_AUTO_BACKUP_PUSH=1`을 주면 각 주기마다 `menemory backup push`도 같이 시도합니다.
+
+중요:
+- 이 스크립트는 "이미 Menemory에 저장된 상태"를 보존합니다.
+- Codex/채팅 자체를 몇 분마다 자동으로 Menemory에 기록하는 기능은 아닙니다.
+- 대화 내용을 Menemory에 반영하려면 여전히 `menemory add`, `menemory ask`, 또는 에이전트에게 "메네모리" 저장 요청이 필요합니다.
 
 ## Supabase 백업 설정
 

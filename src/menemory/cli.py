@@ -379,6 +379,70 @@ def cmd_history(args: argparse.Namespace) -> int:
     return 0
 
 
+def _shorten(text: str, limit: int = 240) -> str:
+    compact = " ".join(str(text).strip().split())
+    if len(compact) <= limit:
+        return compact
+    return compact[:limit] + "..."
+
+
+def cmd_recover(args: argparse.Namespace) -> int:
+    session = load_session()
+    session_id = str(session.get("session_id", "")).strip()
+
+    if args.resume or args.attach:
+        missing = _ensure_tmux_or_fail()
+        if missing is not None:
+            return missing
+
+        tmux_name = session_to_tmux_name(session_id or "default")
+        ok, message = tmux_new_session(tmux_name=tmux_name, command=args.command)
+        if not ok:
+            print(message)
+            return 1
+        print(message)
+        print(f"resume: {tmux_attach_command(tmux_name)}")
+        if args.attach:
+            proc = subprocess.run(tmux_attach_command(tmux_name), shell=True, check=False)
+            return proc.returncode
+
+    print("## Menemory Recovery")
+    print(f"workspace: {workspace_root()}")
+    print(f"session_id: {session_id or '(empty)'}")
+    print(f"last_updated: {session.get('last_updated', '(unknown)')}")
+    print(f"conversation_turns: {len(session.get('conversation', []))}")
+    print(f"raw_history_turns: {history_turn_count(session_id=session_id) if session_id else 0}")
+
+    summary = str(session.get("summary", "") or "").strip()
+    print("\n### Summary")
+    print(summary or "(empty)")
+
+    print("\n### Recent Conversation")
+    conversation = session.get("conversation", [])[-args.conversation_limit :]
+    if conversation:
+        for item in conversation:
+            role = str(item.get("role", "unknown")).upper()
+            print(f"- {role}: {_shorten(str(item.get('content', '')), limit=args.max_chars)}")
+    else:
+        print("(empty)")
+
+    print("\n### Raw History Tail")
+    rows = read_history(session_id=session_id, limit=args.history_limit) if session_id else []
+    if rows:
+        for item in rows:
+            ts = str(item.get("timestamp", ""))[:19]
+            role = str(item.get("role", "unknown")).upper()
+            print(f"- {ts} {role}: {_shorten(str(item.get('content', '')), limit=args.max_chars)}")
+    else:
+        print("(empty)")
+
+    if args.build_prompt:
+        user_input = args.user_input or "작업 재개 요약"
+        print("\n### Suggested Prompt")
+        print(build_prompt(user_input=user_input))
+    return 0
+
+
 def make_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Menemory: stateful AI workspace memory CLI")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -450,6 +514,17 @@ def make_parser() -> argparse.ArgumentParser:
     p_history.add_argument("--session-id", default=None)
     p_history.add_argument("--limit", type=int, default=20, help="number of most recent history rows (default: 20)")
     p_history.set_defaults(func=cmd_history)
+
+    p_recover = sub.add_parser("recover", help="print a concise recovery view for the current menemory session")
+    p_recover.add_argument("--conversation-limit", type=int, default=6, help="recent conversation items to show")
+    p_recover.add_argument("--history-limit", type=int, default=8, help="recent raw history items to show")
+    p_recover.add_argument("--max-chars", type=int, default=240, help="max chars per shown item")
+    p_recover.add_argument("--resume", action="store_true", help="ensure tmux session exists before printing recovery")
+    p_recover.add_argument("--attach", action="store_true", help="attach tmux session immediately")
+    p_recover.add_argument("--command", default=None, help="optional bootstrap command if new tmux session is created")
+    p_recover.add_argument("--build-prompt", action="store_true", help="print a resume-ready prompt after recovery view")
+    p_recover.add_argument("--user-input", default="작업 재개 요약", help="prompt text used with --build-prompt")
+    p_recover.set_defaults(func=cmd_recover)
 
     p_tmux_start = sub.add_parser("tmux-start", help="start detached tmux session for active session_id")
     p_tmux_start.add_argument("--command", default=None, help="optional bootstrap command in tmux")
