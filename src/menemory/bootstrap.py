@@ -39,6 +39,45 @@ def _skill_openai_yaml(name: str, short_description: str, default_prompt: str) -
 
 def _skill_catalog() -> dict[str, dict[str, object]]:
     return {
+        "메네모리": {
+            "description": "Workspace-wide memory sync alias. Recover shared context across Menemory, Claude memory, Codex logs, and Antigravity artifacts when the user just says '메네모리'.",
+            "body": (
+                "# 메네모리\n\n"
+                "사용자가 `메네모리` 라고만 입력하면 이 스킬을 사용한다.\n\n"
+                "## Workflow\n\n"
+                "1. 현재 워크스페이스에 `docs/MEMORY_SYNC_MAP.md` 가 있으면 먼저 읽는다.\n"
+                "2. `scripts/utils/collect_memory_context.sh` 가 있으면 실행한다.\n"
+                "3. `menemory status` 와 `menemory show` 로 현재 세션 상태를 확인한다.\n"
+                "4. 필요하면 Claude memory, Codex history, Antigravity recovery source를 순서대로 조회한다.\n"
+                "5. 이번 세션에서 확정된 진행 상황은 Menemory session summary에 저장한다.\n\n"
+                "## Rules\n\n"
+                "- `.pb` 파일은 Antigravity 본문이 아니라 인덱스다.\n"
+                "- 장기 원칙은 Menemory core, 세션 요약은 Menemory session, 사용자 규칙은 Claude memory에 둔다.\n"
+                "- 같은 내용을 시스템 간에 통째로 복사하지 않는다.\n"
+            ),
+            "scripts": {
+                "recover_workspace_context.sh": (
+                    "#!/usr/bin/env bash\n"
+                    "set -euo pipefail\n"
+                    "ROOT_DIR=\"${1:-$(pwd)}\"\n"
+                    "echo \"workspace: $ROOT_DIR\"\n"
+                    "if [ -f \"$ROOT_DIR/docs/MEMORY_SYNC_MAP.md\" ]; then\n"
+                    "  echo \"sync_map: $ROOT_DIR/docs/MEMORY_SYNC_MAP.md\"\n"
+                    "fi\n"
+                    "if [ -x \"$ROOT_DIR/scripts/utils/collect_memory_context.sh\" ]; then\n"
+                    "  \"$ROOT_DIR/scripts/utils/collect_memory_context.sh\"\n"
+                    "else\n"
+                    "  echo \"collect_memory_context.sh not found; falling back to menemory status\"\n"
+                    "  menemory where || true\n"
+                    "  menemory status || true\n"
+                    "fi\n"
+                    "echo \"claude_memory: $HOME/.claude_MINU/projects/-home-billy-25-1kp-MoNaVLA/memory/MEMORY.md\"\n"
+                    "echo \"codex_history: $HOME/.codex/history.jsonl\"\n"
+                    "echo \"antigravity_brain: $HOME/.gemini/antigravity/brain\"\n"
+                )
+            },
+            "prompt": "Recover this workspace context using the 메네모리 alias workflow.",
+        },
         "menemory-bootstrap": {
             "description": "Install Menemory globally, set PATH/alias, and verify command availability.",
             "body": (
@@ -177,6 +216,34 @@ def _skill_catalog() -> dict[str, dict[str, object]]:
                 )
             },
             "prompt": "Teach me the first-run menemory command order.",
+        },
+        "menemory-memory-sync": {
+            "description": "Recover and reconcile workspace context across Menemory, Claude memory, Codex logs, and Antigravity artifacts.",
+            "body": (
+                "# Menemory Memory Sync\n\n"
+                "Use this skill at session start, after reconnect, or when prior decisions are unclear.\n\n"
+                "## Workflow\n\n"
+                "1. Check `docs/MEMORY_SYNC_MAP.md` if present.\n"
+                "2. Run `scripts/utils/collect_memory_context.sh` if present.\n"
+                "3. Run `menemory status`.\n"
+                "4. Search `~/.codex/history.jsonl` for the relevant topic.\n"
+                "5. If Antigravity recovery is needed, inspect `~/.gemini/antigravity/brain/<uuid>/`.\n"
+                "6. Save a concise result back into Menemory.\n"
+            ),
+            "scripts": {
+                "memory_sync.sh": (
+                    "#!/usr/bin/env bash\n"
+                    "set -euo pipefail\n"
+                    "ROOT_DIR=\"${1:-$(pwd)}\"\n"
+                    "if [ -x \"$ROOT_DIR/scripts/utils/collect_memory_context.sh\" ]; then\n"
+                    "  \"$ROOT_DIR/scripts/utils/collect_memory_context.sh\"\n"
+                    "else\n"
+                    "  menemory where || true\n"
+                    "  menemory status || true\n"
+                    "fi\n"
+                )
+            },
+            "prompt": "Recover shared workspace memory across tools and summarize what matters now.",
         },
     }
 

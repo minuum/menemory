@@ -7,6 +7,7 @@
 - 백업/복원: Supabase (`backup push/pull`)
 - 컨텍스트 계층: Core / Session Summary / Recent Conversation / Long-term
 - 원문 보관: 세션별 raw turn JSONL 자동 저장 (`.menemory/sessions/history/<session_id>.jsonl`)
+- 기본 글로벌 스킬 alias 생성: `메네모리`, `menemory-memory-sync`
 
 ## 기본 운영 방식 (권장)
 
@@ -30,6 +31,7 @@ menemory status
 - 사용자 설정 마법사(이름/이메일/LLM/Supabase)
 - 실행환경 점검(tmux/Supabase/gitignore)
 - Codex용 기본 menemory 스킬 세트 자동 생성(`~/.codex/skills`)
+  - 포함 alias: `메네모리` (빠른 메모리 동기화/복구 트리거)
 
 ## 직관 명령어
 
@@ -47,6 +49,11 @@ menemory where                       # 현재 MENEMORY_HOME 확인
 ```
 
 기존 호환 명령(`run`, `show`, `supabase-*`)도 계속 동작합니다.
+
+지원 IDE/서비스에서 skills를 읽는 경우, `메네모리` 또는 `menemory-memory-sync`
+만 입력해도 워크스페이스 메모리 동기화 플로우를 바로 호출할 수 있게 기본 스킬이
+생성됩니다. 프로젝트에 `docs/MEMORY_SYNC_MAP.md` 와
+`scripts/utils/collect_memory_context.sh` 가 있으면 그 경로를 우선 사용합니다.
 
 `init` 옵션:
 
